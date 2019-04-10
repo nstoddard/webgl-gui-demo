@@ -67,7 +67,7 @@ impl Demo {
             image: Texture2d::from_image(
                 &context,
                 assets.get_image("mandelbrot.png").unwrap(),
-                TextureFormat::RGB,
+                TextureFormat::SRGB,
                 MinFilter::Linear,
                 MagFilter::Linear,
                 WrapMode::ClampToEdge,
@@ -101,13 +101,13 @@ impl Demo {
 
     pub fn handle_events(&mut self, events: Vec<Event>) {
         let mut gui_events = self.gui.handle_events(&events, &[self.button.id()]);
-        if gui_events.update_component(&mut self.button).pressed() {
+        if gui_events.update_component(&self.theme, &mut self.button).pressed() {
             self.button_presses += 1;
         }
     }
 
     pub fn draw(&mut self, cursor_pos: Option<Point2<i32>>) {
-        self.screen_surface.clear(&self.context, &[ClearBuffer::Color(Color4::WHITE)]);
+        self.screen_surface.clear(&self.context, &[ClearBuffer::Color(Color4::WHITE.into())]);
 
         // Draw some random geometry.
         self.draw_2d.fill_poly(
@@ -144,19 +144,14 @@ impl Demo {
 
         self.draw_2d.render_queued(&self.screen_surface);
         self.font.render_queued(&self.screen_surface);
-        self.draw_2d.draw_image(&self.screen_surface, &self.image, point2(300.0, 0.0));
+        self.draw_2d.draw_image(&self.screen_surface, &self.image, point2(300.0, 0.0), 1.0);
     }
 }
 
 impl App for Demo {
-    fn render_frame(
-        &mut self,
-        events: Vec<Event>,
-        pressed_keys: &FnvHashSet<String>,
-        cursor_pos: Option<Point2<i32>>,
-    ) {
-        self.handle_pressed_keys(pressed_keys);
+    fn render_frame(&mut self, events: Vec<Event>, event_state: &EventState, _dt: f64) {
+        self.handle_pressed_keys(&event_state.pressed_keys);
         self.handle_events(events);
-        self.draw(cursor_pos);
+        self.draw(event_state.cursor_pos);
     }
 }

@@ -5,13 +5,13 @@
     <title>WebGL GUI Demo</title>
   </head>
   <body>
-    <script type="text/javascript" src="webgl_gui_demo.js"></script>
+    <script type="text/javascript" src="generated/webgl_gui_demo.js"></script>
 
     <canvas id="canvas" width="500" height="500"></canvas>
 
     <script type="text/javascript">
       document.addEventListener("DOMContentLoaded", async function(event) {
-        await wasm_bindgen('webgl_gui_demo_bg.wasm');
+        await wasm_bindgen('generated/webgl_gui_demo_bg.wasm');
       });
     </script>
   </body>
