@@ -4,7 +4,7 @@ use cgmath::*;
 use fnv::*;
 use std::panic;
 use wasm_bindgen::prelude::*;
-use web_sys::*;
+use web_sys::window;
 use webgl_gui::gui::*;
 use webgl_gui::widgets::*;
 use webgl_gui::Color4;
@@ -12,27 +12,22 @@ use webgl_gui::*;
 use webgl_wrapper::*;
 
 #[wasm_bindgen(start)]
-pub fn main() -> Result<(), JsValue> {
+pub async fn main() -> Result<(), JsValue> {
     panic::set_hook(Box::new(console_error_panic_hook::hook));
     console_log::init_with_level(log::Level::Trace).unwrap();
 
-    Assets::load(
-        vec!["DejaVuSansMono.ttf".to_owned()],
-        vec!["mandelbrot.png".to_owned()],
-        Box::new(main2),
-    );
+    let assets =
+        Assets::load(vec!["DejaVuSansMono.ttf".to_owned()], vec!["mandelbrot.png".to_owned()])
+            .await;
 
-    Ok(())
-}
-
-// `Assets::load()` calls this once all the assets are loaded.
-fn main2(assets: Assets) {
     if let Ok((context, screen_surface)) = GlContext::new(CANVAS_ID) {
         let demo = Demo::new(context, screen_surface, assets);
         start_main_loop(CANVAS_ID, Box::new(demo));
     } else {
         window().unwrap().alert_with_message("Unable to create WebGL 2 context. Try reloading the page; if that doesn't work, switch to Firefox or Chrome.").unwrap();
     }
+
+    Ok(())
 }
 
 const CANVAS_ID: &str = "canvas";
@@ -63,6 +58,7 @@ impl Demo {
             button_active_fill_color: (Color4::from_srgba(0.0, 0.0, 0.0, 0.5).mul_srgb(0.5)),
             padding: 10,
         };
+        let draw_2d_programs = Draw2dPrograms::new(&context);
         Self {
             image: Texture2d::from_image(
                 &context,
@@ -73,7 +69,7 @@ impl Demo {
                 WrapMode::ClampToEdge,
             ),
             font,
-            draw_2d: Draw2d::new(&context),
+            draw_2d: Draw2d::new(&context, &draw_2d_programs),
             pos: point2(150.0, 100.0),
             context,
             screen_surface,
@@ -142,7 +138,8 @@ impl Demo {
             ),
         );
 
-        self.draw_2d.render_queued(&self.screen_surface);
+        self.draw_2d
+            .render_queued(&self.screen_surface, compute_ortho_matrix(&self.screen_surface));
         self.font.render_queued(&self.screen_surface);
         self.draw_2d.draw_image(&self.screen_surface, &self.image, point2(300.0, 0.0), 1.0);
     }
