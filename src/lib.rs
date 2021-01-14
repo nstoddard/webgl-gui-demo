@@ -16,9 +16,11 @@ pub async fn main() -> Result<(), JsValue> {
     panic::set_hook(Box::new(console_error_panic_hook::hook));
     console_log::init_with_level(log::Level::Trace).unwrap();
 
-    let assets =
-        Assets::load(vec!["DejaVuSansMono.ttf".to_owned()], vec!["mandelbrot.png".to_owned()])
-            .await;
+    let assets = Assets::load(
+        vec!["fonts/Xolonium-Regular.ttf".to_owned()],
+        vec!["mandelbrot.png".to_owned()],
+    )
+    .await;
 
     if let Ok((context, screen_surface)) = GlContext::new(CANVAS_ID) {
         let demo = Demo::new(context, screen_surface, assets);
@@ -47,7 +49,7 @@ struct Demo {
 
 impl Demo {
     pub fn new(context: GlContext, screen_surface: ScreenSurface, mut assets: Assets) -> Self {
-        let font = Font::new(&context, assets.remove("DejaVuSansMono.ttf").unwrap(), 16);
+        let font = Font::new(&context, assets.remove("fonts/Xolonium-Regular.ttf").unwrap(), 18);
         let theme = Theme {
             font: font.clone(),
             label_color: Color4::BLACK,
@@ -138,8 +140,7 @@ impl Demo {
             ),
         );
 
-        self.draw_2d
-            .render_queued(&self.screen_surface, compute_ortho_matrix(&self.screen_surface));
+        self.draw_2d.render_queued(&self.screen_surface);
         self.font.render_queued(&self.screen_surface);
         self.draw_2d.draw_image(&self.screen_surface, &self.image, point2(300.0, 0.0), 1.0);
     }
